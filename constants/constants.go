@@ -19,6 +19,8 @@ package constants
 const (
 	// ClusterPediaAPIPath is the extra path of apiserver
 	ClusterPediaAPIPath = "/apis/pedia.clusterpedia.io/v1alpha1/resources"
+	// ClusterAPIPath for a specific cluster
+	ClusterAPIPath = "/clusters/"
 
 	// all of the clusterpedia selectLabel
 	SearchLabelOwner      = "search.clusterpedia.io/owner"

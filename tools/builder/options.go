@@ -21,7 +21,8 @@ import (
 	"strconv"
 	"time"
 
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metainternal "k8s.io/apimachinery/pkg/apis/meta/internalversion"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
@@ -34,7 +35,7 @@ type ListOptionsInterface interface {
 	Offset(offset int) ListOptionsInterface
 	OrderBy(Order) ListOptionsInterface
 	Timeout(timeout time.Duration) ListOptionsInterface
-	Options() metaV1.ListOptions
+	Options() metav1.ListOptions
 }
 
 type Order struct {
@@ -42,59 +43,45 @@ type Order struct {
 	Desc  bool
 }
 
-type listOptions metaV1.ListOptions
+type listOptions metainternal.ListOptions
 
 func ListOptionsBuilder() ListOptionsInterface {
-	return &listOptions{}
+	return &listOptions{
+		LabelSelector: labels.NewSelector(),
+	}
 }
 
 func (opts *listOptions) Clusters(names ...string) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
-
 	r, _ := labels.NewRequirement(constants.SearchLabelClusters, selection.In, append([]string(nil), names...))
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) Names(names ...string) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
-
 	r, _ := labels.NewRequirement(constants.SearchLabelNames, selection.In, append([]string(nil), names...))
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) Namespaces(names ...string) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
-
 	r, _ := labels.NewRequirement(constants.SearchLabelNamespaces, selection.In, append([]string(nil), names...))
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) Size(limit int) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
-
 	r, _ := labels.NewRequirement(constants.SearchLabelSize, selection.Equals, []string{strconv.Itoa(limit)})
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) Offset(offset int) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
-
 	r, _ := labels.NewRequirement(constants.SearchLabelOffset, selection.Equals, []string{strconv.Itoa(offset)})
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) OrderBy(order Order) ListOptionsInterface {
-	selector := parseToSelector(opts.LabelSelector)
 	var orderby string
 	if order.Desc {
 		orderby = order.Field + constants.OrderByDesc
@@ -103,8 +90,7 @@ func (opts *listOptions) OrderBy(order Order) ListOptionsInterface {
 	}
 
 	r, _ := labels.NewRequirement(constants.SearchLabelOffset, selection.Equals, []string{orderby})
-	selector = selector.Add(*r)
-	opts.LabelSelector = selector.String()
+	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
@@ -115,15 +101,8 @@ func (opts *listOptions) Timeout(timeout time.Duration) ListOptionsInterface {
 	return opts
 }
 
-func (opts *listOptions) Options() metaV1.ListOptions {
-	return metaV1.ListOptions(*opts)
-}
-
-func parseToSelector(labelSelector string) labels.Selector {
-	selector := labels.NewSelector()
-	if len(labelSelector) > 0 {
-		_ = metaV1.Convert_string_To_labels_Selector(&labelSelector, &selector, nil)
-	}
-
-	return selector
+func (opts *listOptions) Options() metav1.ListOptions {
+	var v1 metav1.ListOptions
+	metainternal.Convert_internalversion_ListOptions_To_v1_ListOptions((*metainternal.ListOptions)(opts), &v1, nil)
+	return v1
 }

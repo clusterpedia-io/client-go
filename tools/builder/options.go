@@ -28,31 +28,27 @@ import (
 )
 
 type ListOptionsInterface interface {
-	Clusters(names ...string) ListOptionsInterface
+	Clusters(clusters ...string) ListOptionsInterface
 	Names(names ...string) ListOptionsInterface
 	Namespaces(namespaces ...string) ListOptionsInterface
 	Size(size int) ListOptionsInterface
 	Offset(offset int) ListOptionsInterface
-	OrderBy(Order) ListOptionsInterface
+	OrderBy(field string, desc ...bool) ListOptionsInterface
 	Timeout(timeout time.Duration) ListOptionsInterface
 	Options() metav1.ListOptions
-}
-
-type Order struct {
-	Field string
-	Desc  bool
 }
 
 type listOptions metainternal.ListOptions
 
 func ListOptionsBuilder() ListOptionsInterface {
 	return &listOptions{
-		LabelSelector: labels.NewSelector(),
+		LabelSelector: NewSelector(),
 	}
 }
 
-func (opts *listOptions) Clusters(names ...string) ListOptionsInterface {
-	r, _ := labels.NewRequirement(constants.SearchLabelClusters, selection.In, append([]string(nil), names...))
+func (opts *listOptions) Clusters(clusters ...string) ListOptionsInterface {
+	var r *labels.Requirement
+	r, _ = labels.NewRequirement(constants.SearchLabelClusters, selection.In, append([]string(nil), clusters...))
 	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
@@ -63,14 +59,14 @@ func (opts *listOptions) Names(names ...string) ListOptionsInterface {
 	return opts
 }
 
-func (opts *listOptions) Namespaces(names ...string) ListOptionsInterface {
-	r, _ := labels.NewRequirement(constants.SearchLabelNamespaces, selection.In, append([]string(nil), names...))
+func (opts *listOptions) Namespaces(namespaces ...string) ListOptionsInterface {
+	r, _ := labels.NewRequirement(constants.SearchLabelNamespaces, selection.In, append([]string(nil), namespaces...))
 	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
 
 func (opts *listOptions) Size(limit int) ListOptionsInterface {
-	r, _ := labels.NewRequirement(constants.SearchLabelSize, selection.Equals, []string{strconv.Itoa(limit)})
+	r, _ := labels.NewRequirement(constants.SearchLabelLimit, selection.Equals, []string{strconv.Itoa(limit)})
 	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }
@@ -81,15 +77,12 @@ func (opts *listOptions) Offset(offset int) ListOptionsInterface {
 	return opts
 }
 
-func (opts *listOptions) OrderBy(order Order) ListOptionsInterface {
-	var orderby string
-	if order.Desc {
-		orderby = order.Field + constants.OrderByDesc
-	} else {
-		orderby = order.Field
+func (opts *listOptions) OrderBy(field string, desc ...bool) ListOptionsInterface {
+	if len(desc) > 0 && desc[0] {
+		field += constants.OrderByDesc
 	}
 
-	r, _ := labels.NewRequirement(constants.SearchLabelOffset, selection.Equals, []string{orderby})
+	r, _ := labels.NewRequirement(constants.SearchLabelOrderBy, selection.In, []string{field})
 	opts.LabelSelector = opts.LabelSelector.Add(*r)
 	return opts
 }

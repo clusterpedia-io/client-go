@@ -17,10 +17,10 @@ limitations under the License.
 package main
 
 import (
-	pedia "client-go/client"
-	"client-go/tools/builder"
 	"context"
 	"fmt"
+	pedia "github.com/clusterpedia-io/client-go/client"
+	"github.com/clusterpedia-io/client-go/tools/builder"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"

@@ -17,7 +17,7 @@ limitations under the License.
 package client
 
 import (
-	"client-go/constants"
+	"github.com/clusterpedia-io/client-go/constants"
 
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/kubernetes"

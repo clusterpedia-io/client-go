@@ -1,7 +1,7 @@
 package fake
 
 import (
-	v1 "client-go/fake/typed/pod/v1"
+	v1 "github.com/clusterpedia-io/client-go/fake/typed/pod/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"

@@ -17,7 +17,7 @@ limitations under the License.
 package builder
 
 import (
-	"client-go/constants"
+	"github.com/clusterpedia-io/client-go/constants"
 	"strconv"
 	"time"
 

@@ -1,9 +1,9 @@
 package fake
 
 import (
-	"client-go/constants"
-	"client-go/tools/builder"
 	"context"
+	"github.com/clusterpedia-io/client-go/constants"
+	"github.com/clusterpedia-io/client-go/tools/builder"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"

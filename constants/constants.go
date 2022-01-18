@@ -29,9 +29,14 @@ const (
 	SearchLabelNamespaces = "search.clusterpedia.io/namespaces"
 	SearchLabelOrderBy    = "search.clusterpedia.io/orderby"
 
-	// TODO: clusterpedia will change the label to search.clusterpedia.io/limit
-	SearchLabelSize   = "search.clusterpedia.io/size"
+	SearchLabelWithContinue       = "search.clusterpedia.io/with-continue"
+	SearchLabelWithRemainingCount = "search.clusterpedia.io/with-remaining-count"
+
+	SearchLabelLimit  = "search.clusterpedia.io/limit"
 	SearchLabelOffset = "search.clusterpedia.io/offset"
+
+	ShadowAnnotationClusterName          = "shadow.clusterpedia.io/cluster-name"
+	ShadowAnnotationGroupVersionResource = "shadow.clusterpedia.io/gvr"
 
 	OrderByDesc = "_desc"
 )

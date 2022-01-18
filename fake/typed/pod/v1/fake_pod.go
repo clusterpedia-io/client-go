@@ -59,20 +59,8 @@ func (c *FakePods) List(ctx context.Context, opts metav1.ListOptions) (result *c
 
 	list := &corev1.PodList{ListMeta: obj.(*corev1.PodList).ListMeta}
 
-	// handle offSize and limit
-	pl := make(map[string]string)
-	var size, offset int
-	if value, found := label.RequiresExactMatch(constants.SearchLabelOffset); found {
-		offset, _ = strconv.Atoi(value)
-		pl[constants.SearchLabelOffset] = value
-	}
-	if value, found := label.RequiresExactMatch(constants.SearchLabelSize); found {
-		size, _ = strconv.Atoi(value)
-		pl[constants.SearchLabelSize] = value
-	}
-
 	for _, item := range obj.(*corev1.PodList).Items {
-
+		pl := make(map[string]string)
 		// handle name and cluster name
 		for k, v := range item.Labels {
 			pl[k] = v
@@ -85,11 +73,14 @@ func (c *FakePods) List(ctx context.Context, opts metav1.ListOptions) (result *c
 		}
 	}
 
+	// handle offSize and limit
+	offset, _ := strconv.Atoi(opts.Continue)
+	limt := int(opts.Limit)
 	if offset <= len(list.Items) {
-		if offset+size > len(list.Items) {
+		if offset+limt > len(list.Items) {
 			list.Items = list.Items[offset:]
-		} else if size > 0 {
-			list.Items = list.Items[offset : offset+size]
+		} else if limt > 0 {
+			list.Items = list.Items[offset : offset+limt]
 		}
 	} else {
 		list.Items = make([]corev1.Pod, 0)

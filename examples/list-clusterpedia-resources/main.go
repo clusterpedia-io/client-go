@@ -36,8 +36,8 @@ func main() {
 	options := builder.ListOptionsBuilder().
 		Clusters("cluster-01").
 		Namespaces("kube-system").
-		Offset(10).Size(5).
-		OrderBy(builder.Order{"dsad", false}).
+		Offset(10).Limit(5).
+		OrderBy("dsad", false).
 		Options()
 
 	pods, err := c.CoreV1().Pods("").List(context.TODO(), options)

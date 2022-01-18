@@ -28,36 +28,47 @@ func TestListOptions(t *testing.T) {
 		expectLabelSelector string
 	}{
 		{
-			ListOptionsBuilder().Clusters("cluster-01").Options(),
-			"search.clusterpedia.io/clusters in (cluster-01)",
+			ListOptionsBuilder().Clusters("aaa").Clusters("bbb", "ccc").Options(),
+			"search.clusterpedia.io/clusters in (aaa,bbb,ccc)",
 		},
 		{
-			ListOptionsBuilder().Clusters("cluster-01", "cluster-02", "ABC").Options(),
-			"search.clusterpedia.io/clusters in (ABC,cluster-01,cluster-02)",
+			ListOptionsBuilder().Clusters("aaa", "bbb", "ccc").
+				Namespaces("ddd").Options(),
+			"search.clusterpedia.io/clusters in (aaa,bbb,ccc),search.clusterpedia.io/namespaces=ddd",
 		},
 		{
-			ListOptionsBuilder().Clusters("cluster-01", "cluster-02").
-				Namespaces("default", "kube-system").Options(),
-			"search.clusterpedia.io/clusters in (cluster-01,cluster-02),search.clusterpedia.io/namespaces in (default,kube-system)",
+			ListOptionsBuilder().Clusters("aaa").
+				Namespaces("bbb", "ccc").
+				Namespaces("ddd").Options(),
+			"search.clusterpedia.io/clusters=aaa,search.clusterpedia.io/namespaces in (bbb,ccc,ddd)",
 		},
 		{
-			ListOptionsBuilder().Clusters("cluster-01").
-				Namespaces("kube-system").Offset(0).Size(5).Options(),
-			"search.clusterpedia.io/clusters in (cluster-01),search.clusterpedia.io/namespaces in (kube-system),search.clusterpedia.io/offset=0,search.clusterpedia.io/size=5",
+			ListOptionsBuilder().Clusters("aaa").Clusters("bbbb").
+				Namespaces("ccc").Options(),
+			"search.clusterpedia.io/clusters in (aaa,bbbb),search.clusterpedia.io/namespaces=ccc",
 		},
 		{
-			ListOptionsBuilder().Clusters("cluster-01").
-				Namespaces("kube-system").
-				Offset(10).Size(5).
-				OrderBy(Order{"dsad", false}).Options(),
-			"search.clusterpedia.io/clusters in (cluster-01),search.clusterpedia.io/namespaces in (kube-system),search.clusterpedia.io/offset=10,search.clusterpedia.io/offset=dsad,search.clusterpedia.io/size=5",
+			ListOptionsBuilder().Clusters("aaa").
+				Namespaces("bbb").
+				OrderBy("dsad", true).
+				OrderBy("basd").Options(),
+			"search.clusterpedia.io/clusters=aaa,search.clusterpedia.io/namespaces=bbb,search.clusterpedia.io/orderby in (basd,dsad_desc)",
+		},
+		{
+			ListOptionsBuilder().Clusters("aaa").
+				Namespaces("bbb").
+				OrderBy("dsad", true).
+				RemainingCount().Options(),
+			"search.clusterpedia.io/clusters=aaa,search.clusterpedia.io/namespaces=bbb,search.clusterpedia.io/orderby=dsad_desc,search.clusterpedia.io/with-remaining-count=true",
 		},
 	}
+
 	for _, test := range testCase {
 		t.Run("", func(t *testing.T) {
 			if test.opt.LabelSelector != test.expectLabelSelector {
 				t.Errorf("Unexpect label selector: %s", test.opt.LabelSelector)
 			}
+
 		})
 	}
 }

@@ -58,7 +58,7 @@ func TestFakeClient(t *testing.T) {
 		},
 		{
 			builder.ListOptionsBuilder().Clusters("cluster01", "cluster02").
-				Offset(2).Size(4).Options(), 4,
+				Offset(2).Limit(4).Options(), 4,
 		},
 	}
 

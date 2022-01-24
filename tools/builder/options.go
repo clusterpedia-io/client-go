@@ -23,6 +23,7 @@ import (
 	"github.com/clusterpedia-io/client-go/constants"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
@@ -36,6 +37,11 @@ type ListOptionsInterface interface {
 	OrderBy(field string, desc ...bool) ListOptionsInterface
 	Timeout(timeout time.Duration) ListOptionsInterface
 	RemainingCount() ListOptionsInterface
+	Owners(owners ...string) ListOptionsInterface
+	OwnerSeniority(ownerSeniority int) ListOptionsInterface
+
+	FieldSelector(field string, values []string) ListOptionsInterface
+
 	Options() metav1.ListOptions
 }
 
@@ -65,6 +71,22 @@ func (opts *listOptions) Names(names ...string) ListOptionsInterface {
 	if len(names) > 0 {
 		opts.labelSeletor[constants.SearchLabelNames] =
 			append(opts.labelSeletor[constants.SearchLabelNames], names...)
+	}
+	return opts
+}
+
+func (opts *listOptions) Owners(owners ...string) ListOptionsInterface {
+	if len(owners) > 0 {
+		opts.labelSeletor[constants.SearchLabelOwners] =
+			append(opts.labelSeletor[constants.SearchLabelOwners], owners...)
+	}
+	return opts
+}
+
+func (opts *listOptions) OwnerSeniority(ownerSeniority int) ListOptionsInterface {
+	if ownerSeniority > 0 {
+		opts.labelSeletor[constants.SearchLabelOwnerSeniority] =
+			append(opts.labelSeletor[constants.SearchLabelOwnerSeniority], strconv.Itoa(ownerSeniority))
 	}
 	return opts
 }
@@ -121,11 +143,16 @@ func (opts *listOptions) RemainingCount() ListOptionsInterface {
 	return opts
 }
 
+func (opts *listOptions) FieldSelector(field string, values []string) ListOptionsInterface {
+	opts.fieldSelector[field] =
+		append(opts.labelSeletor[field], values...)
+	return opts
+}
+
 func (opts *listOptions) Options() metav1.ListOptions {
 	if len(opts.labelSeletor) == 0 {
 		opts.options.LabelSelector = labels.Nothing().String()
 	} else {
-
 		requirements := make([]labels.Requirement, 0, len(opts.labelSeletor))
 		for label, values := range opts.labelSeletor {
 			var op selection.Operator
@@ -144,6 +171,24 @@ func (opts *listOptions) Options() metav1.ListOptions {
 	}
 
 	// TODO: fieldSelector
+	if len(opts.fieldSelector) == 0 {
+		opts.options.FieldSelector = fields.Everything().String()
+	} else {
+		requirements := make([]labels.Requirement, 0, len(opts.fieldSelector))
+		for label, values := range opts.fieldSelector {
+			var op selection.Operator
+			if len(values) > 1 {
+				op = selection.In
+			} else {
+				op = selection.Equals
+			}
 
+			r, _ := labels.NewRequirement(label, op, append([]string(nil), values...))
+			requirements = append(requirements, *r)
+		}
+		selector := labels.NewSelector()
+		selector = selector.Add(requirements...)
+		opts.options.FieldSelector = selector.String()
+	}
 	return opts.options
 }

@@ -24,6 +24,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const (
+	DefaultQPS   float32 = 2000
+	DefaultBurst int     = 2000
+)
+
 func ConfigFor(cfg *rest.Config) (*rest.Config, error) {
 	configShallowCopy := *cfg
 
@@ -73,6 +78,8 @@ func setConfigDefaults(config *rest.Config) error {
 	gv := v1.SchemeGroupVersion
 	config.GroupVersion = &gv
 	config.Host += constants.ClusterPediaAPIPath
+	config.Burst = DefaultBurst
+	config.QPS = DefaultQPS
 
 	if config.UserAgent == "" {
 		config.UserAgent = rest.DefaultKubernetesUserAgent()

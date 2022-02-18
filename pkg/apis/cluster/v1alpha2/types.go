@@ -1,4 +1,4 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,14 +12,12 @@ const (
 	SyncStatusStop    = "Stop"
 )
 
-// TODO: if the apis package of clusterpedia is separated, the file will be remove.
-
 // +genclient
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope="Cluster"
-// +kubebuilder:printcolumn:name="APIServer URL",type=string,JSONPath=".spec.apiserverURL"
+// +kubebuilder:printcolumn:name="APIServer",type=string,JSONPath=".spec.apiserver"
 // +kubebuilder:printcolumn:name="Version",type=string,JSONPath=".status.version"
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=".status.conditions[?(@.type == 'Ready')].reason"
 type PediaCluster struct {
@@ -36,7 +34,7 @@ type PediaCluster struct {
 type ClusterSpec struct {
 	// +required
 	// +kubebuilder:validation:Required
-	APIServerURL string `json:"apiserverURL"`
+	APIServer string `json:"apiserver"`
 
 	// +optional
 	TokenData []byte `json:"tokenData,omitempty"`
@@ -51,10 +49,10 @@ type ClusterSpec struct {
 	KeyData []byte `json:"keyData,omitempty"`
 
 	// +required
-	Resources []ClusterResource `json:"resources"`
+	SyncResources []ClusterGroupResources `json:"syncResources"`
 }
 
-type ClusterResource struct {
+type ClusterGroupResources struct {
 	Group string `json:"group"`
 
 	// +optional
@@ -75,10 +73,10 @@ type ClusterStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
 	// +optional
-	Resources []ClusterGroupStatus `json:"resources,omitempty"`
+	SyncResources []ClusterGroupResourcesStatus `json:"syncResources,omitempty"`
 }
 
-type ClusterGroupStatus struct {
+type ClusterGroupResourcesStatus struct {
 	// +required
 	// +kubebuilder:validation:Required
 	Group string `json:"group"`
@@ -91,11 +89,11 @@ type ClusterGroupStatus struct {
 type ClusterResourceStatus struct {
 	// +required
 	// +kubebuilder:validation:Required
-	Kind string `json:"kind"`
+	Name string `json:"name"`
 
 	// +required
 	// +kubebuilder:validation:Required
-	Resource string `json:"resource"`
+	Kind string `json:"kind"`
 
 	// +required
 	// +kubebuilder:validation:Required

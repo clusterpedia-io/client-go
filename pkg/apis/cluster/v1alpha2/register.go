@@ -1,4 +1,4 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -6,17 +6,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// TODO: if the apis package of clusterpedia is separated, the file will be remove.
-
 // GroupName specifies the group name used to register the objects.
-const GroupName = "clusters.clusterpedia.io"
+const GroupName = "cluster.clusterpedia.io"
 
 // GroupVersion specifies the group and the version used to register the objects.
-var GroupVersion = v1.GroupVersion{Group: GroupName, Version: "v1alpha1"}
+var GroupVersion = v1.GroupVersion{Group: GroupName, Version: "v1alpha2"}
 
 // SchemeGroupVersion is group version used to register these objects
 // Deprecated: use GroupVersion instead.
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha2"}
 
 // Resource takes an unqualified resource and returns a Group qualified GroupResource
 func Resource(resource string) schema.GroupResource {

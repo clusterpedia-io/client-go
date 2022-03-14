@@ -39,9 +39,8 @@ type ListOptionsInterface interface {
 	RemainingCount() ListOptionsInterface
 	Owners(owners ...string) ListOptionsInterface
 	OwnerSeniority(ownerSeniority int) ListOptionsInterface
-
+	LabelSelector(field string, values []string) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
-
 	Options() metav1.ListOptions
 }
 
@@ -143,9 +142,15 @@ func (opts *listOptions) RemainingCount() ListOptionsInterface {
 	return opts
 }
 
+func (opts *listOptions) LabelSelector(field string, values []string) ListOptionsInterface {
+	opts.labelSeletor[field] =
+		append(opts.labelSeletor[field], values...)
+	return opts
+}
+
 func (opts *listOptions) FieldSelector(field string, values []string) ListOptionsInterface {
 	opts.fieldSelector[field] =
-		append(opts.labelSeletor[field], values...)
+		append(opts.fieldSelector[field], values...)
 	return opts
 }
 
@@ -170,7 +175,6 @@ func (opts *listOptions) Options() metav1.ListOptions {
 		opts.options.LabelSelector = selector.String()
 	}
 
-	// TODO: fieldSelector
 	if len(opts.fieldSelector) == 0 {
 		opts.options.FieldSelector = fields.Everything().String()
 	} else {

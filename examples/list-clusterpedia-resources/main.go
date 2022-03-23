@@ -19,15 +19,16 @@ package main
 import (
 	"context"
 	"fmt"
+
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
 	pedia "github.com/clusterpedia-io/client-go/client"
 	"github.com/clusterpedia-io/client-go/tools/builder"
-
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
-	c, err := ClusterpediaClientLoadFromFile()
+	c, err := pedia.Client()
 	if err != nil {
 		panic(err)
 	}
@@ -38,28 +39,25 @@ func main() {
 		Namespaces("kube-system").
 		Offset(10).Limit(5).
 		OrderBy("dsad", false).
-		Options()
+		Build()
 
-	pods, err := c.CoreV1().Pods("").List(context.TODO(), options)
+	pods := &corev1.PodList{}
+	err = c.List(context.TODO(), pods, options)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, item := range pods.Items {
-		fmt.Printf("Pod info: %v", item)
-	}
-}
-
-func ClusterpediaClientLoadFromFile() (kubernetes.Interface, error) {
-	config, err := clientcmd.LoadFromFile("/path/to/config")
-	if err != nil {
-		return nil, err
-	}
-	overrides := clientcmd.ConfigOverrides{Timeout: "10s"}
-	clientConfig, err := clientcmd.NewDefaultClientConfig(*config, &overrides).ClientConfig()
-	if err != nil {
-		return nil, err
+		fmt.Printf("Pod info: %v\n", item)
 	}
 
-	return pedia.NewForConfig(clientConfig)
+	deploys := &appsv1.DeploymentList{}
+	err = c.List(context.TODO(), deploys, options)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, item := range deploys.Items {
+		fmt.Printf("Deployment info: %v\n", item)
+	}
 }

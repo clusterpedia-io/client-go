@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/clusterpedia-io/client-go/constants"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -42,6 +43,7 @@ type ListOptionsInterface interface {
 	LabelSelector(field string, values []string) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
 	Options() metav1.ListOptions
+	Build() *client.ListOptions
 }
 
 type listOptions struct {
@@ -195,4 +197,10 @@ func (opts *listOptions) Options() metav1.ListOptions {
 		opts.options.FieldSelector = selector.String()
 	}
 	return opts.options
+}
+
+func (opts *listOptions) Build() *client.ListOptions {
+	opt := opts.Options()
+
+	return &client.ListOptions{Raw: &opt, Limit: opt.Limit, Continue: opt.Continue}
 }

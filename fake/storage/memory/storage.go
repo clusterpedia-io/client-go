@@ -382,8 +382,8 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 			index = append(index, db.UnionClusterNamespace(cluster, namespace)...)
 		}
 	}
+
 	for _, v := range index {
-		fmt.Println(res,db.Table[v],v)
 		res = append(res, db.Table[v])
 	}
 	if opts.LabelSelector != nil {
@@ -411,16 +411,16 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		if offset < 0 {
 			return nil
 		}
-		start := int64(offset-1)*(opts.Limit)
-		end := int64(offset)*opts.Limit
+		start := int64(offset-1) * (opts.Limit)
+		end := int64(offset) * opts.Limit
 		if start > int64(len(res)) {
 			return nil
-		}else if end > int64(len(res)) {
+		} else if end > int64(len(res)) {
 			return res[start:]
-		}else {
-			return res[int64(offset)*(opts.Limit):int64(offset+1)*opts.Limit]
+		} else {
+			return res[int64(offset)*(opts.Limit) : int64(offset+1)*opts.Limit]
 		}
-	}else {
+	} else {
 		return res
 	}
 }
@@ -438,15 +438,15 @@ func (db *DataBase) LabelSelect(list []*Resource, s labels.Selector) ([]*Resourc
 		if err != nil {
 			return nil, err
 		}
-		maps,ok := m["metadata"].(map[string]interface{})["labels"]
+		maps, ok := m["metadata"].(map[string]interface{})["labels"]
 		if ok {
 			sl := maps.(map[string]interface{})
 			for key, value := range sl {
-				for _,requirement := range r {
+				for _, requirement := range r {
 					if key == requirement.Key() {
-						for index,_ := range requirement.Values(){
+						for index, _ := range requirement.Values() {
 							if value == index {
-								res = append(res,v)
+								res = append(res, v)
 								continue
 							}
 						}

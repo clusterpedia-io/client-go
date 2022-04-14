@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/clusterpedia-io/client-go/constants"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils"
 	internal "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia"
@@ -377,6 +378,12 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 	}
 	var res []*Resource
 	var index []int
+	if opts.ClusterNames == nil {
+		opts.ClusterNames = db.GetAllCluster()
+	}
+	if opts.Namespaces == nil {
+		opts.Namespaces = db.GetAllNamespace()
+	}
 	for _, cluster := range opts.ClusterNames {
 		for _, namespace := range opts.Namespaces {
 			index = append(index, db.UnionClusterNamespace(cluster, namespace)...)
@@ -386,19 +393,29 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 	for _, v := range index {
 		res = append(res, db.Table[v])
 	}
-	if opts.LabelSelector != nil {
-		tmp, err := db.LabelSelect(res, opts.LabelSelector)
+	if opts.ExtraLabelSelector != nil {
+		owner := db.OwnerId(opts.ExtraLabelSelector)
+		if owner != nil {
+			res = db.FindOwner(res,owner)
+		}
+
+		tmp, err := db.LabelSelect(res, opts.ExtraLabelSelector)
 		if err != nil {
 			return nil
 		}
 		res = tmp
 	}
-	if ownerId := opts.OwnerUID; ownerId != "" {
-		for _, v := range res {
-			if string(v.OwnerUID) == ownerId {
-				res = append(res, v)
-			}
+	if opts.LabelSelector != nil {
+		owner := db.OwnerId(opts.LabelSelector)
+		if owner != nil {
+			res = db.FindOwner(res,owner)
 		}
+
+		tmp, err := db.LabelSelect(res, opts.LabelSelector)
+		if err != nil {
+			return nil
+		}
+		res = tmp
 	}
 	if opts.Limit > 0 {
 		if opts.Limit > int64(len(res)) {
@@ -411,14 +428,14 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		if offset < 0 {
 			return nil
 		}
-		start := int64(offset-1) * (opts.Limit)
-		end := int64(offset) * opts.Limit
-		if start > int64(len(res)) {
+		start := offset
+		end := int64(offset) + opts.Limit
+		if start > len(res) {
 			return nil
 		} else if end > int64(len(res)) {
 			return res[start:]
 		} else {
-			return res[int64(offset)*(opts.Limit) : int64(offset+1)*opts.Limit]
+			return res[start : end]
 		}
 	} else {
 		return res
@@ -456,4 +473,49 @@ func (db *DataBase) LabelSelect(list []*Resource, s labels.Selector) ([]*Resourc
 		}
 	}
 	return res, nil
+}
+
+func (db *DataBase) OwnerId(s labels.Selector) []string {
+	var res []string
+	r,_ := s.Requirements()
+	for _,v := range r {
+		if v.Key() == constants.SearchLabelOwners{
+			for key,_ := range v.Values(){
+				res = append(res,key)
+			}
+			return res
+		}
+	}
+	return nil
+}
+
+func (db *DataBase)FindOwner(res []*Resource,owner []string) []*Resource {
+	var tmp []*Resource
+	for _, v := range res {
+		for _,id := range owner {
+			if string(v.OwnerUID) == id {
+				tmp = append(tmp,v)
+			}
+		}
+	}
+	if tmp == nil {
+		return res
+	}
+	return tmp
+}
+
+func (db *DataBase)GetAllCluster()[]string{
+	var res []string
+	for key,_ := range db.Index[Cluster] {
+		res = append(res,key)
+	}
+	return res
+}
+
+func (db *DataBase)GetAllNamespace()[]string{
+	var res []string
+	for key,_ := range db.Index[Namespace] {
+		res = append(res,key)
+	}
+	return res
 }

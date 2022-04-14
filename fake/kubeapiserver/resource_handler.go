@@ -45,10 +45,10 @@ func (r *ResourceHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	gvr := schema.GroupVersionResource{Group: requestInfo.APIGroup, Version: requestInfo.APIVersion, Resource: requestInfo.Resource}
 
 	clusterName := request.ClusterNameValue(req.Context())
-	if !r.discovery.ResourceEnabled(clusterName, gvr) {
-		r.delegate.ServeHTTP(w, req)
-		return
-	}
+	// if !r.discovery.ResourceEnabled(clusterName, gvr) {
+	// 	r.delegate.ServeHTTP(w, req)
+	// 	return
+	// }
 
 	info := r.rest.GetRESTResourceInfo(gvr)
 	if info.Empty() {

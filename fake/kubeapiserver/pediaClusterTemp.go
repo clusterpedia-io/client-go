@@ -52,7 +52,7 @@ var pediaClusterTemp = `
 			  "group":"rbac.authorization.k8s.io",
 			  "resources":[
 				 "clusterrolebindings",
-				 "clusterroles",
+				 "rolebindings",
 				 "clusterroles",
 				 "roles"
 			  ],
@@ -320,9 +320,9 @@ var pediaClusterTemp = `
 					]
 				 },
 				 {
-					"kind":"ClusterRole",
-					"name":"clusterroles",
-					"namespaced":false,
+					"kind":"RoleBinding",
+					"name":"rolebindings",
+					"namespaced":true,
 					"syncConditions":[
 					    {
 						   "status":"Syncing",

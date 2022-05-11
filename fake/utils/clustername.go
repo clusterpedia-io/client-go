@@ -4,7 +4,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	internal "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia"
+	internal "github.com/clusterpedia-io/api/clusterpedia"
 )
 
 func ExtractClusterName(obj runtime.Object) string {

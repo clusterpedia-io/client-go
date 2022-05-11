@@ -13,7 +13,7 @@ import (
 	"github.com/clusterpedia-io/client-go/constants"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils"
-	internal "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia"
+	internal "github.com/clusterpedia-io/api/clusterpedia"
 	"gorm.io/datatypes"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

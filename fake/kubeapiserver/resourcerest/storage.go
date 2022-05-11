@@ -16,9 +16,9 @@ import (
 	"github.com/clusterpedia-io/client-go/fake/kubeapiserver/printers"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils/request"
-	internal "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia"
-	scheme "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia/scheme"
-	v1beta1 "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia/v1beta1"
+	internal "github.com/clusterpedia-io/api/clusterpedia"
+	scheme "github.com/clusterpedia-io/api/clusterpedia/scheme"
+	v1beta1 "github.com/clusterpedia-io/api/clusterpedia/v1beta1"
 )
 
 type RESTStorage struct {

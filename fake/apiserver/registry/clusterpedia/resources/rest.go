@@ -13,7 +13,7 @@ import (
 	genericrest "k8s.io/apiserver/pkg/registry/rest"
 
 	"github.com/clusterpedia-io/client-go/fake/utils/request"
-	"github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia/v1beta1"
+	"github.com/clusterpedia-io/api/clusterpedia/v1beta1"
 )
 
 // REST implements RESTStorage for Resources API

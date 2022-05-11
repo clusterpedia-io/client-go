@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/clusterpedia-io/client-go/constants"
-	clusterv1alpha2 "github.com/clusterpedia-io/client-go/pkg/apis/cluster/v1alpha2"
+	clusterv1alpha2 "github.com/clusterpedia-io/api/cluster/v1alpha2"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	v1alpha2 "github.com/clusterpedia-io/client-go/pkg/apis/cluster/v1alpha2"
+	v1alpha2 "github.com/clusterpedia-io/api/cluster/v1alpha2"
 	scheme "github.com/clusterpedia-io/client-go/pkg/generated/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

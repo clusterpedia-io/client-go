@@ -11,8 +11,8 @@ import (
 	"github.com/clusterpedia-io/client-go/fake/kubeapiserver"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils/filters"
-	internal "github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia"
-	"github.com/clusterpedia-io/client-go/pkg/apis/clusterpedia/install"
+	internal "github.com/clusterpedia-io/api/clusterpedia"
+	"github.com/clusterpedia-io/api/clusterpedia/install"
 	metainternal "k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

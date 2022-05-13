@@ -29,8 +29,9 @@ const (
 	SearchLabelNamespaces = "search.clusterpedia.io/namespaces"
 	SearchLabelOrderBy    = "search.clusterpedia.io/orderby"
 
-	SearchLabelOwners         = "internalstorage.clusterpedia.io/owner-uid"
-	SearchLabelOwnerSeniority = "internalstorage.clusterpedia.io/owner-seniority"
+	SearchLabelOwnerUID       = "search.clusterpedia.io/owner-uid"
+	SearchLabelOwnerSeniority = "search.clusterpedia.io/owner-seniority"
+	SearchLabelOwnerName      = "search.clusterpedia.io/owner-name"
 
 	SearchLabelWithContinue       = "search.clusterpedia.io/with-continue"
 	SearchLabelWithRemainingCount = "search.clusterpedia.io/with-remaining-count"

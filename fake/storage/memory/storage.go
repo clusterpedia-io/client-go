@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	internal "github.com/clusterpedia-io/api/clusterpedia"
 	"github.com/clusterpedia-io/client-go/constants"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils"
-	internal "github.com/clusterpedia-io/api/clusterpedia"
 	"gorm.io/datatypes"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -396,7 +396,7 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 	if opts.ExtraLabelSelector != nil {
 		owner := db.OwnerId(opts.ExtraLabelSelector)
 		if owner != nil {
-			res = db.FindOwner(res,owner)
+			res = db.FindOwner(res, owner)
 		}
 
 		tmp, err := db.LabelSelect(res, opts.ExtraLabelSelector)
@@ -408,7 +408,7 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 	if opts.LabelSelector != nil {
 		owner := db.OwnerId(opts.LabelSelector)
 		if owner != nil {
-			res = db.FindOwner(res,owner)
+			res = db.FindOwner(res, owner)
 		}
 
 		tmp, err := db.LabelSelect(res, opts.LabelSelector)
@@ -435,7 +435,7 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		} else if end > int64(len(res)) {
 			return res[start:]
 		} else {
-			return res[start : end]
+			return res[start:end]
 		}
 	} else {
 		return res
@@ -477,11 +477,11 @@ func (db *DataBase) LabelSelect(list []*Resource, s labels.Selector) ([]*Resourc
 
 func (db *DataBase) OwnerId(s labels.Selector) []string {
 	var res []string
-	r,_ := s.Requirements()
-	for _,v := range r {
-		if v.Key() == constants.SearchLabelOwners{
-			for key,_ := range v.Values(){
-				res = append(res,key)
+	r, _ := s.Requirements()
+	for _, v := range r {
+		if v.Key() == constants.SearchLabelOwnerUID {
+			for key, _ := range v.Values() {
+				res = append(res, key)
 			}
 			return res
 		}
@@ -489,12 +489,12 @@ func (db *DataBase) OwnerId(s labels.Selector) []string {
 	return nil
 }
 
-func (db *DataBase)FindOwner(res []*Resource,owner []string) []*Resource {
+func (db *DataBase) FindOwner(res []*Resource, owner []string) []*Resource {
 	var tmp []*Resource
 	for _, v := range res {
-		for _,id := range owner {
+		for _, id := range owner {
 			if string(v.OwnerUID) == id {
-				tmp = append(tmp,v)
+				tmp = append(tmp, v)
 			}
 		}
 	}
@@ -504,18 +504,18 @@ func (db *DataBase)FindOwner(res []*Resource,owner []string) []*Resource {
 	return tmp
 }
 
-func (db *DataBase)GetAllCluster()[]string{
+func (db *DataBase) GetAllCluster() []string {
 	var res []string
-	for key,_ := range db.Index[Cluster] {
-		res = append(res,key)
+	for key, _ := range db.Index[Cluster] {
+		res = append(res, key)
 	}
 	return res
 }
 
-func (db *DataBase)GetAllNamespace()[]string{
+func (db *DataBase) GetAllNamespace() []string {
 	var res []string
-	for key,_ := range db.Index[Namespace] {
-		res = append(res,key)
+	for key, _ := range db.Index[Namespace] {
+		res = append(res, key)
 	}
 	return res
 }

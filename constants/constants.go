@@ -23,7 +23,6 @@ const (
 	ClusterAPIPath = "/clusters/"
 
 	// all of the clusterpedia selectLabel
-	SearchLabelOwner      = "search.clusterpedia.io/owner"
 	SearchLabelNames      = "search.clusterpedia.io/names"
 	SearchLabelClusters   = "search.clusterpedia.io/clusters"
 	SearchLabelNamespaces = "search.clusterpedia.io/namespaces"

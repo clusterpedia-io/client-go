@@ -18,6 +18,7 @@ package builder
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/clusterpedia-io/client-go/constants"
@@ -38,7 +39,8 @@ type ListOptionsInterface interface {
 	OrderBy(field string, desc ...bool) ListOptionsInterface
 	Timeout(timeout time.Duration) ListOptionsInterface
 	RemainingCount() ListOptionsInterface
-	Owners(owners ...string) ListOptionsInterface
+	OwnerUID(uid string) ListOptionsInterface
+	OwnerName(name string) ListOptionsInterface
 	OwnerSeniority(ownerSeniority int) ListOptionsInterface
 	LabelSelector(field string, values []string) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
@@ -76,18 +78,25 @@ func (opts *listOptions) Names(names ...string) ListOptionsInterface {
 	return opts
 }
 
-func (opts *listOptions) Owners(owners ...string) ListOptionsInterface {
-	if len(owners) > 0 {
-		opts.labelSeletor[constants.SearchLabelOwners] =
-			append(opts.labelSeletor[constants.SearchLabelOwners], owners...)
+func (opts *listOptions) OwnerUID(uid string) ListOptionsInterface {
+	uid = strings.TrimSpace(uid)
+	if len(uid) > 0 {
+		opts.labelSeletor[constants.SearchLabelOwnerUID] = []string{uid}
+	}
+	return opts
+}
+
+func (opts *listOptions) OwnerName(name string) ListOptionsInterface {
+	name = strings.TrimSpace(name)
+	if len(name) > 0 {
+		opts.labelSeletor[constants.SearchLabelOwnerName] = []string{name}
 	}
 	return opts
 }
 
 func (opts *listOptions) OwnerSeniority(ownerSeniority int) ListOptionsInterface {
 	if ownerSeniority > 0 {
-		opts.labelSeletor[constants.SearchLabelOwnerSeniority] =
-			append(opts.labelSeletor[constants.SearchLabelOwnerSeniority], strconv.Itoa(ownerSeniority))
+		opts.labelSeletor[constants.SearchLabelOwnerSeniority] = []string{strconv.Itoa(ownerSeniority)}
 	}
 	return opts
 }

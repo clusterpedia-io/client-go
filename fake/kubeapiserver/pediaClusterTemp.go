@@ -19,7 +19,8 @@ var pediaClusterTemp = `
 				 "services",
 				 "events",
 				 "secrets",
-				 "persistentvolumeclaims"
+				 "persistentvolumeclaims",
+				 "persistentvolumes"
 			  ],
 			  "versions":[
 				 "v1"
@@ -59,6 +60,35 @@ var pediaClusterTemp = `
 			  "versions":[
 				 "v1"
 			  ]
+		   },
+		   {
+			"group":"snapshot.storage.k8s.io",
+			"resources":[
+			   "volumesnapshotclasses",
+			   "volumesnapshotcontents",
+			   "volumesnapshots"
+			],
+			"versions":[
+			   "v1"
+			]
+		   },
+		   {
+			"group":"storage.k8s.io",
+			"resources":[
+			   "storageclasses"
+			],
+			"versions":[
+			   "v1"
+			]
+		   },
+		   {
+			"group":"autoscaling",
+			"resources":[
+			   "horizontalpodautoscalers"
+			],
+			"versions":[
+			   "v1"
+			]
 		   },
 		   {
 			  "group":"networking.k8s.io",
@@ -200,6 +230,18 @@ var pediaClusterTemp = `
 					"kind":"PersistentVolumeClaim",
 					"name":"persistentvolumeclaims",
 					"namespaced":true,
+					"syncConditions":[
+					    {
+						   "status":"Syncing",
+						   "storageVersion":"v1",
+						   "version":"v1"
+					    }
+					]
+				 },
+				 {
+					"kind":"PersistentVolume",
+					"name":"persistentvolumes",
+					"namespaced":false,
 					"syncConditions":[
 					    {
 						   "status":"Syncing",
@@ -387,12 +429,70 @@ var pediaClusterTemp = `
 			  ]
 		   },
 		   {
-			  "group":"apiextensions.k8s.io",
+			"group":"snapshot.storage.k8s.io",
+			"resources":[
+			   {
+				  "kind":"VolumeSnapshot",
+				  "name":"volumesnapshots",
+				  "namespaced":true,
+				  "syncConditions":[
+					  {
+						 "status":"Syncing",
+						 "storageVersion":"v1",
+						 "version":"v1"
+					  }
+				  ]
+			   },
+			   {
+				  "kind":"VolumeSnapshotContent",
+				  "name":"volumesnapshotcontents",
+				  "namespaced":false,
+				  "syncConditions":[
+					  {
+						 "status":"Syncing",
+						 "storageVersion":"v1",
+						 "version":"v1"
+					  }
+				  ]
+			   },
+			   {
+				"kind":"VolumeSnapshotClass",
+				"name":"volumesnapshotclasses",
+				"namespaced":false,
+				"syncConditions":[
+					{
+					   "status":"Syncing",
+					   "storageVersion":"v1",
+					   "version":"v1"
+					}
+				]
+			 }
+			]
+		 },
+		 {
+			"group":"storage.k8s.io",
+			"resources":[
+			   {
+				  "kind":"StorageClass",
+				  "name":"storageclasses",
+				  "namespaced":true,
+				  "syncConditions":[
+					  {
+						 "status":"Syncing",
+						 "storageVersion":"v1",
+						 "version":"v1"
+					  }
+				  ]
+			   }
+			]
+		 },
+		   {
+			  "group":"autoscaling",
 			  "resources":[
 				 {
-					"kind":"CustomResourceDefinition",
-					"name":"customresourcedefinitions",
-					"namespaced":false,
+					"kind":"HorizontalPodAutoscaler",
+					"name":"horizontalpodautoscalers",
+					"namespaced":true,
 					"syncConditions":[
 					    {
 						   "status":"Syncing",
@@ -403,6 +503,23 @@ var pediaClusterTemp = `
 				 }
 			  ]
 		   },
+		   {
+			"group":"apiextensions.k8s.io",
+			"resources":[
+			   {
+				  "kind":"CustomResourceDefinition",
+				  "name":"customresourcedefinitions",
+				  "namespaced":false,
+				  "syncConditions":[
+					  {
+						 "status":"Syncing",
+						 "storageVersion":"v1",
+						 "version":"v1"
+					  }
+				  ]
+			   }
+			]
+		 },
 		   {
 			  "group":"cluster.kpanda.io",
 			  "resources":[

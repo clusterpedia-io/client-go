@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	internal "github.com/clusterpedia-io/api/clusterpedia"
+	fields2 "github.com/clusterpedia-io/api/clusterpedia/fields"
 	"github.com/clusterpedia-io/client-go/constants"
 	"github.com/clusterpedia-io/client-go/fake/storage"
 	"github.com/clusterpedia-io/client-go/fake/utils"
@@ -417,6 +419,13 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		}
 		res = tmp
 	}
+	if opts.EnhancedFieldSelector != nil && opts.EnhancedFieldSelector.String() != "" {
+		tmp, err := db.EnhancedSelect(res, opts.EnhancedFieldSelector)
+		if err != nil {
+			return nil
+		}
+		res = tmp
+	}
 	if opts.Limit > 0 {
 		if opts.Limit > int64(len(res)) {
 			return res
@@ -465,6 +474,46 @@ func (db *DataBase) LabelSelect(list []*Resource, s labels.Selector) ([]*Resourc
 							if value == index {
 								res = append(res, v)
 								continue
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return res, nil
+}
+
+func (db *DataBase) EnhancedSelect(list []*Resource, s fields2.Selector) ([]*Resource, error) {
+	var res []*Resource
+	if r, b := s.Requirements(); b {
+		for _, obj := range list {
+			s2, err := obj.Object.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			var target map[string]interface{}
+			err = json.Unmarshal(s2, &target)
+			if err != nil {
+				return nil, err
+			}
+			for _, v := range r {
+				targetList := strings.Split(v.Fields()[len(v.Fields())-1].Path().String(), ".")
+				for index, field := range targetList {
+					if index < len(targetList)-1 {
+						var ok bool
+						target, ok = target[field].(map[string]interface{})
+						if !ok {
+							return nil, err
+						}
+					} else {
+						n, ok := target[field].(string)
+						if !ok {
+							return nil, err
+						}
+						for _, value := range v.Values().List() {
+							if value == n {
+								res = append(res, obj)
 							}
 						}
 					}

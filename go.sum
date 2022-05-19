@@ -121,8 +121,8 @@ github.com/cilium/ebpf v0.4.0/go.mod h1:4tRaxcgiL706VnOzHOdBlY8IEAIdxINsQBcU4xJJ
 github.com/cilium/ebpf v0.6.2/go.mod h1:4tRaxcgiL706VnOzHOdBlY8IEAIdxINsQBcU4xJJXRs=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/clusterhq/flocker-go v0.0.0-20160920122132-2b8b7259d313/go.mod h1:P1wt9Z3DP8O6W3rvwCt0REIlshg1InHImaLW0t3ObY0=
-github.com/clusterpedia-io/api v0.0.0-20220510034551-b353c251711d h1:JXO4bnzb59PB9YHC9prVbjDtUED5doo/m2vYY2KFJD4=
-github.com/clusterpedia-io/api v0.0.0-20220510034551-b353c251711d/go.mod h1:GQbHwdrbrbgwYmNjEeSaMjr1Zo01RBQBAn/XJq2ZV/Q=
+github.com/clusterpedia-io/api v0.0.0-20220507025304-d012b86e5587 h1:lFw+udwXBzBIScjht2+HeHC1ldxMchsE1rFdp/m+rXU=
+github.com/clusterpedia-io/api v0.0.0-20220507025304-d012b86e5587/go.mod h1:GQbHwdrbrbgwYmNjEeSaMjr1Zo01RBQBAn/XJq2ZV/Q=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=

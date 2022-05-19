@@ -1,12 +1,12 @@
 package kubeapiserver
 
 import (
-	"path"
+	// "path"
 	"strings"
 	"sync"
 	"sync/atomic"
 
-	"k8s.io/apimachinery/pkg/api/meta"
+	// "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -240,14 +240,14 @@ func (m *RESTManager) addRESTResourceInfosLocked(addedInfos map[schema.GroupVers
 
 		if info.RequestScope == nil {
 			namer := handlers.ContextBasedNaming{
-				SelfLinker:    runtime.SelfLinker(meta.NewAccessor()),
+				// SelfLinker:    runtime.SelfLinker(meta.NewAccessor()),
 				ClusterScoped: !info.APIResource.Namespaced,
 			}
-			if gvr.Group == "" {
-				namer.SelfLinkPathPrefix = path.Join("api", gvr.Version) + "/"
-			} else {
-				namer.SelfLinkPathPrefix = path.Join("apis", gvr.Group, gvr.Version) + "/"
-			}
+			// if gvr.Group == "" {
+			// 	namer.SelfLinkPathPrefix = path.Join("api", gvr.Version) + "/"
+			// } else {
+			// 	namer.SelfLinkPathPrefix = path.Join("apis", gvr.Group, gvr.Version) + "/"
+			// }
 
 			var requestScope *handlers.RequestScope
 			if resourcescheme.LegacyResourceScheme.IsGroupRegistered(gvr.Group) {

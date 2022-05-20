@@ -426,6 +426,13 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		}
 		res = tmp
 	}
+	if opts.OwnerName != "" {
+		tmp, err := db.OwnerName(res, opts.OwnerName)
+		if err != nil {
+			return nil
+		}
+		res = tmp
+	}
 	if opts.Limit > 0 {
 		if opts.Limit > int64(len(res)) {
 			return res
@@ -536,6 +543,32 @@ func (db *DataBase) OwnerId(s labels.Selector) []string {
 		}
 	}
 	return nil
+}
+
+func (db *DataBase) OwnerName(list []*Resource, name string) ([]*Resource, error) {
+	var res []*Resource
+	for _, obj := range list {
+		bt, err := obj.Object.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		var target map[string]interface{}
+		err = json.Unmarshal(bt, &target)
+		if err != nil {
+			return nil, err
+		}
+		if metadata, ok := target["metadata"].(map[string]interface{}); ok {
+			if owners, ok := metadata["ownerReferences"].([]interface{}); ok {
+				for _, ref := range owners {
+					body, ok := ref.(map[string]interface{})
+					if ok && body["name"] == name {
+						res = append(res, obj)
+					}
+				}
+			}
+		}
+	}
+	return res, nil
 }
 
 func (db *DataBase) FindOwner(res []*Resource, owner []string) []*Resource {

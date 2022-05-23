@@ -4,17 +4,14 @@ import (
 	"context"
 	"log"
 
-	"github.com/clusterpedia-io/client-go/fake/kubeapiserver/resourcescheme"
 	internal "github.com/clusterpedia-io/api/clusterpedia"
-	// batchv1 "k8s.io/api/batch/v1"
+	"github.com/clusterpedia-io/client-go/fake/kubeapiserver/resourcescheme"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	// "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	// clientScheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 func main() {
@@ -71,9 +68,8 @@ func NewObject(name string) runtime.Object {
 	return &corev1.Pod{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   "test",
-			ClusterName: "test",
+			Name:      name,
+			Namespace: "test",
 		},
 	}
 }

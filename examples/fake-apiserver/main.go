@@ -53,9 +53,8 @@ func NewObject(name string) runtime.Object {
 			Kind:       "Pod",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   "kube-system",
-			ClusterName: "cluster-01",
+			Name:      name,
+			Namespace: "kube-system",
 		},
 	}
 }

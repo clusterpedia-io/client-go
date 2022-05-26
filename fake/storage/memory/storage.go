@@ -427,11 +427,31 @@ func (db *DataBase) ListSimpleSearch(opts *internal.ListOptions) []*Resource {
 		res = tmp
 	}
 	if opts.OwnerName != "" {
-		tmp, err := db.OwnerName(res, opts.OwnerName)
-		if err != nil {
-			return nil
+		count := opts.OwnerSeniority
+		var ownerlist []*OwnerSearch
+		for _,v := range res {
+			s := &OwnerSearch{
+				Self: v,
+				Owner: []*Resource{v},
+			}
+			ownerlist = append(ownerlist, s)
 		}
-		res = tmp
+		for count >= 0 {
+			if count != 0 {
+				var err error
+				ownerlist, err = db.FindOwnerByName(ownerlist)
+				if err != nil {
+					break
+				}
+			} else {
+				tmp, err := db.OwnerName(ownerlist, opts.OwnerName)
+				if err != nil {
+					return nil
+				}
+				res = tmp
+			}
+			count --
+		}
 	}
 	if opts.Limit > 0 {
 		if opts.Limit > int64(len(res)) {
@@ -545,30 +565,71 @@ func (db *DataBase) OwnerId(s labels.Selector) []string {
 	return nil
 }
 
-func (db *DataBase) OwnerName(list []*Resource, name string) ([]*Resource, error) {
+func (db *DataBase) OwnerName(list []*OwnerSearch, name string) ([]*Resource, error) {
 	var res []*Resource
-	for _, obj := range list {
-		bt, err := obj.Object.MarshalJSON()
-		if err != nil {
-			return nil, err
-		}
-		var target map[string]interface{}
-		err = json.Unmarshal(bt, &target)
-		if err != nil {
-			return nil, err
-		}
-		if metadata, ok := target["metadata"].(map[string]interface{}); ok {
-			if owners, ok := metadata["ownerReferences"].([]interface{}); ok {
-				for _, ref := range owners {
-					body, ok := ref.(map[string]interface{})
-					if ok && body["name"] == name {
-						res = append(res, obj)
+	for _,os := range list {
+		for _, obj := range os.Owner {
+			bt, err := obj.Object.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			var target map[string]interface{}
+			err = json.Unmarshal(bt, &target)
+			if err != nil {
+				return nil, err
+			}
+			if metadata, ok := target["metadata"].(map[string]interface{}); ok {
+				if owners, ok := metadata["ownerReferences"].([]interface{}); ok {
+					for _, ref := range owners {
+						body, ok := ref.(map[string]interface{})
+						if ok && body["name"] == name {
+							res = append(res, obj)
+						}
 					}
 				}
 			}
 		}
 	}
 	return res, nil
+}
+
+func (db *DataBase) FindOwnerByName(list []*OwnerSearch) ([]*OwnerSearch, error) {
+	for _,v := range list {
+		var owner []*Resource
+		for _,value := range v.Owner {
+			bt,err := value.Object.MarshalJSON()
+			if err != nil {
+				return nil,err
+			}
+			var target map[string]interface{}
+			err = json.Unmarshal(bt, &target)
+			if err != nil {
+				return nil, err
+			}
+			if metadata, ok := target["metadata"].(map[string]interface{}); ok {
+				if owners, ok := metadata["ownerReferences"].([]interface{}); ok {
+					for _, ref := range owners {
+						body, ok := ref.(map[string]interface{})
+						if ok {
+							owner = append(owner, db.FindResourceByName(body["name"].(string)))
+						}
+					}
+				}
+			}
+
+		}
+		v.Owner = owner
+	}
+	return list,nil
+}
+
+func (db *DataBase) FindResourceByName(name string) *Resource {
+	for _,v := range db.Table {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
 }
 
 func (db *DataBase) FindOwner(res []*Resource, owner []string) []*Resource {
@@ -600,4 +661,9 @@ func (db *DataBase) GetAllNamespace() []string {
 		res = append(res, key)
 	}
 	return res
+}
+
+type OwnerSearch struct {
+	Self	*Resource
+	Owner	[]*Resource
 }

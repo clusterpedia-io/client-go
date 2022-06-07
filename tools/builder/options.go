@@ -33,6 +33,7 @@ import (
 type ListOptionsInterface interface {
 	Clusters(clusters ...string) ListOptionsInterface
 	Names(names ...string) ListOptionsInterface
+	FuzzyNames(names ...string) ListOptionsInterface
 	Namespaces(namespaces ...string) ListOptionsInterface
 	Limit(limit int) ListOptionsInterface
 	Offset(offset int) ListOptionsInterface
@@ -74,6 +75,14 @@ func (opts *listOptions) Names(names ...string) ListOptionsInterface {
 	if len(names) > 0 {
 		opts.labelSeletor[constants.SearchLabelNames] =
 			append(opts.labelSeletor[constants.SearchLabelNames], names...)
+	}
+	return opts
+}
+
+func (opts *listOptions) FuzzyNames(names ...string) ListOptionsInterface {
+	if len(names) > 0 {
+		opts.labelSeletor[constants.SearchLabelFuzzyName] =
+			append(opts.labelSeletor[constants.SearchLabelFuzzyName], names...)
 	}
 	return opts
 }

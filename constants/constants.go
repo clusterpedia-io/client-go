@@ -24,6 +24,7 @@ const (
 
 	// all of the clusterpedia selectLabel
 	SearchLabelNames      = "search.clusterpedia.io/names"
+	SearchLabelFuzzyName  = "internalstorage.clusterpedia.io/fuzzy-name"
 	SearchLabelClusters   = "search.clusterpedia.io/clusters"
 	SearchLabelNamespaces = "search.clusterpedia.io/namespaces"
 	SearchLabelOrderBy    = "search.clusterpedia.io/orderby"

@@ -119,14 +119,14 @@ var pediaClusterTemp = `
 			  ]
 		   },
 		   {
-			  "group":"cluster.kpanda.io",
+			  "group":"kubeanclusterops.kubean.io ",
 			  "resources":[
-				 "clusters"
+				  "kubeanclusterops"
 			  ],
 			  "versions":[
-				 "v1alpha1"
+				  "v1alpha1"
 			  ]
-		   }
+		 	}
 	    ]
 	},
 	"status":{
@@ -534,10 +534,15 @@ var pediaClusterTemp = `
 						   "version":"v1alpha1"
 					    }
 					]
-				 },
+				 }
+			  ]
+		   },
+		   {
+			  "group":"kubeanclusterops.kubean.io",
+			  "resources":[
 				 {
-					"kind":"Cluster",
-					"name":"clusters",
+					"kind":"KuBeanClusterOps",
+					"name":"kubeanclusterops",
 					"namespaced":false,
 					"syncConditions":[
 					    {

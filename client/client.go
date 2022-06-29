@@ -27,8 +27,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/clusterpedia-io/client-go/constants"
 	clusterv1alpha2 "github.com/clusterpedia-io/api/cluster/v1alpha2"
+	"github.com/clusterpedia-io/client-go/constants"
 )
 
 const (
@@ -89,7 +89,7 @@ func ConfigFor(cfg *rest.Config) (*rest.Config, error) {
 	configShallowCopy := *cfg
 
 	// reset clusterpedia api path
-	if err := setConfigDefaults(&configShallowCopy); err != nil {
+	if err := SetConfigDefaults(&configShallowCopy); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +133,7 @@ func NewClusterForConfig(cfg *rest.Config, cluster string) (kubernetes.Interface
 	return kubeClient, nil
 }
 
-func setConfigDefaults(config *rest.Config) error {
+func SetConfigDefaults(config *rest.Config) error {
 	config.Host += constants.ClusterPediaAPIPath
 	if config.Timeout == 0 {
 		config.Timeout = DefaultTimeoutSeconds * time.Second

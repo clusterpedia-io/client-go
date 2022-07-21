@@ -19,36 +19,44 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/clusterpedia-io/client-go/customclient"
+	clusterpediaclient "github.com/clusterpedia-io/client-go/clusterpediaclient"
 	"github.com/clusterpedia-io/client-go/tools/builder"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func main() {
-	config, err := ctrl.GetConfig()
+	restConfig, err := ctrl.GetConfig()
 	if err != nil {
-		log.Fatalf("failed to init config: %v", err)
+		panic(err)
 	}
-	customClient, err := customclient.NewForConfig(config)
+	cc, err := clusterpediaclient.NewForConfig(restConfig)
 	if err != nil {
-		log.Fatalf("failed to init customClient: %v", err)
+		panic(err)
 	}
 
-	deploys := &appsv1.DeploymentList{}
+	collectionResource, err := cc.PediaClusterV1beta1().CollectionResource().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, item := range collectionResource.Items {
+		fmt.Printf("resource info: %v\n", item)
+	}
+
+	// build listOptions
 	options := builder.ListOptionsBuilder().
-		Offset(0).Limit(10).
-		RemainingCount().
+		Namespaces("kube-system").
 		Options()
 
-	customClient.Resource(schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}).
-		Namespace("default").
-		List(context.TODO(), options, map[string]string{"clusters": "kpanda-global-cluster"}, deploys)
+	resources, err := cc.PediaClusterV1beta1().CollectionResource().Fetch(context.TODO(), "workflows", options, nil)
+	if err != nil {
+		panic(err)
+	}
 
-	for _, item := range deploys.Items {
-		fmt.Printf("namespace: %s, name: %s\n", item.Namespace, item.Name)
+	for _, item := range resources.Items {
+		fmt.Printf("resource info: %v\n", item)
 	}
 }

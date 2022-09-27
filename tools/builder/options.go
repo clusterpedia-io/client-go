@@ -45,21 +45,30 @@ type ListOptionsInterface interface {
 	OwnerSeniority(ownerSeniority int) ListOptionsInterface
 	LabelSelector(field string, values []string) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
+	LabelSelectorOption(labelSeletorReq []LabelSelectorOption) ListOptionsInterface
 	Options() metav1.ListOptions
 	Build() *client.ListOptions
 }
 
+type LabelSelectorOption struct {
+	Op   string
+	Key  string
+	Vals []string
+}
+
 type listOptions struct {
-	options       metav1.ListOptions
-	labelSeletor  map[string][]string
-	fieldSelector map[string][]string
+	options                  metav1.ListOptions
+	labelSeletor             map[string][]string
+	labelSeletorRequirements []LabelSelectorOption
+	fieldSelector            map[string][]string
 }
 
 func ListOptionsBuilder() ListOptionsInterface {
 	return &listOptions{
-		options:       metav1.ListOptions{},
-		labelSeletor:  make(map[string][]string),
-		fieldSelector: make(map[string][]string),
+		options:                  metav1.ListOptions{},
+		labelSeletor:             make(map[string][]string),
+		fieldSelector:            make(map[string][]string),
+		labelSeletorRequirements: []LabelSelectorOption{},
 	}
 }
 
@@ -162,9 +171,16 @@ func (opts *listOptions) RemainingCount() ListOptionsInterface {
 	return opts
 }
 
+// LabelSelector default label selector use `In` and `Equals`
 func (opts *listOptions) LabelSelector(field string, values []string) ListOptionsInterface {
 	opts.labelSeletor[field] =
 		append(opts.labelSeletor[field], values...)
+	return opts
+}
+
+// LabelSelectorOption use label selector have other selection option
+func (opts *listOptions) LabelSelectorOption(labelSeletorReq []LabelSelectorOption) ListOptionsInterface {
+	opts.labelSeletorRequirements = labelSeletorReq
 	return opts
 }
 
@@ -175,7 +191,7 @@ func (opts *listOptions) FieldSelector(field string, values []string) ListOption
 }
 
 func (opts *listOptions) Options() metav1.ListOptions {
-	if len(opts.labelSeletor) == 0 {
+	if len(opts.labelSeletor) == 0 && len(opts.labelSeletorRequirements) == 0 {
 		opts.options.LabelSelector = labels.Nothing().String()
 	} else {
 		requirements := make([]labels.Requirement, 0, len(opts.labelSeletor))
@@ -186,8 +202,30 @@ func (opts *listOptions) Options() metav1.ListOptions {
 			} else {
 				op = selection.Equals
 			}
-
 			r, _ := labels.NewRequirement(label, op, append([]string(nil), values...))
+			requirements = append(requirements, *r)
+		}
+		for _, v := range opts.labelSeletorRequirements {
+			var op selection.Operator
+			switch v.Op {
+			case "DoesNotExist":
+				op = selection.DoesNotExist
+			case "Equals":
+				op = selection.Equals
+			case "DoubleEquals":
+				op = selection.DoubleEquals
+			case "NotEquals ":
+				op = selection.NotEquals
+			case "NotIn":
+				op = selection.NotIn
+			case "Exists":
+				op = selection.Equals
+			case "GreaterThan":
+				op = selection.GreaterThan
+			case "LessThan":
+				op = selection.LessThan
+			}
+			r, _ := labels.NewRequirement(v.Key, op, v.Vals)
 			requirements = append(requirements, *r)
 		}
 		selector := labels.NewSelector()

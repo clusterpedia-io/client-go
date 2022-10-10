@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 func TestListOptions(t *testing.T) {
@@ -61,12 +62,21 @@ func TestListOptions(t *testing.T) {
 				RemainingCount().Options(),
 			"search.clusterpedia.io/clusters=aaa,search.clusterpedia.io/namespaces=bbb,search.clusterpedia.io/orderby=dsad_desc,search.clusterpedia.io/with-remaining-count=true",
 		},
+		{
+			ListOptionsBuilder().Clusters("aaa").
+				Selector(labels.SelectorFromSet(map[string]string{"a": "b"})).Options(),
+			"a=b,search.clusterpedia.io/clusters=aaa",
+		},
+		{
+			ListOptionsBuilder().Options(),
+			"",
+		},
 	}
 
 	for _, test := range testCase {
 		t.Run("", func(t *testing.T) {
 			if test.opt.LabelSelector != test.expectLabelSelector {
-				t.Errorf("Unexpect label selector: %s", test.opt.LabelSelector)
+				t.Errorf("Unexpect label selector: %s, expect: %s", test.opt.LabelSelector, test.expectLabelSelector)
 			}
 
 		})

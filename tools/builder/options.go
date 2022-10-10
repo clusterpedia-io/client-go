@@ -44,6 +44,7 @@ type ListOptionsInterface interface {
 	OwnerName(name string) ListOptionsInterface
 	OwnerSeniority(ownerSeniority int) ListOptionsInterface
 	LabelSelector(field string, values []string) ListOptionsInterface
+	Selector(ls labels.Selector) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
 	Options() metav1.ListOptions
 	Build() *client.ListOptions
@@ -51,38 +52,39 @@ type ListOptionsInterface interface {
 
 type listOptions struct {
 	options       metav1.ListOptions
-	labelSeletor  map[string][]string
+	labels        map[string][]string
+	labelSelector labels.Selector
 	fieldSelector map[string][]string
 }
 
 func ListOptionsBuilder() ListOptionsInterface {
 	return &listOptions{
 		options:       metav1.ListOptions{},
-		labelSeletor:  make(map[string][]string),
+		labels:        make(map[string][]string),
 		fieldSelector: make(map[string][]string),
 	}
 }
 
 func (opts *listOptions) Clusters(clusters ...string) ListOptionsInterface {
 	if len(clusters) > 0 {
-		opts.labelSeletor[constants.SearchLabelClusters] =
-			append(opts.labelSeletor[constants.SearchLabelClusters], clusters...)
+		opts.labels[constants.SearchLabelClusters] =
+			append(opts.labels[constants.SearchLabelClusters], clusters...)
 	}
 	return opts
 }
 
 func (opts *listOptions) Names(names ...string) ListOptionsInterface {
 	if len(names) > 0 {
-		opts.labelSeletor[constants.SearchLabelNames] =
-			append(opts.labelSeletor[constants.SearchLabelNames], names...)
+		opts.labels[constants.SearchLabelNames] =
+			append(opts.labels[constants.SearchLabelNames], names...)
 	}
 	return opts
 }
 
 func (opts *listOptions) FuzzyNames(names ...string) ListOptionsInterface {
 	if len(names) > 0 {
-		opts.labelSeletor[constants.SearchLabelFuzzyName] =
-			append(opts.labelSeletor[constants.SearchLabelFuzzyName], names...)
+		opts.labels[constants.SearchLabelFuzzyName] =
+			append(opts.labels[constants.SearchLabelFuzzyName], names...)
 	}
 	return opts
 }
@@ -90,7 +92,7 @@ func (opts *listOptions) FuzzyNames(names ...string) ListOptionsInterface {
 func (opts *listOptions) OwnerUID(uid string) ListOptionsInterface {
 	uid = strings.TrimSpace(uid)
 	if len(uid) > 0 {
-		opts.labelSeletor[constants.SearchLabelOwnerUID] = []string{uid}
+		opts.labels[constants.SearchLabelOwnerUID] = []string{uid}
 	}
 	return opts
 }
@@ -98,22 +100,22 @@ func (opts *listOptions) OwnerUID(uid string) ListOptionsInterface {
 func (opts *listOptions) OwnerName(name string) ListOptionsInterface {
 	name = strings.TrimSpace(name)
 	if len(name) > 0 {
-		opts.labelSeletor[constants.SearchLabelOwnerName] = []string{name}
+		opts.labels[constants.SearchLabelOwnerName] = []string{name}
 	}
 	return opts
 }
 
 func (opts *listOptions) OwnerSeniority(ownerSeniority int) ListOptionsInterface {
 	if ownerSeniority > 0 {
-		opts.labelSeletor[constants.SearchLabelOwnerSeniority] = []string{strconv.Itoa(ownerSeniority)}
+		opts.labels[constants.SearchLabelOwnerSeniority] = []string{strconv.Itoa(ownerSeniority)}
 	}
 	return opts
 }
 
 func (opts *listOptions) Namespaces(namespaces ...string) ListOptionsInterface {
 	if len(namespaces) > 0 {
-		opts.labelSeletor[constants.SearchLabelNamespaces] =
-			append(opts.labelSeletor[constants.SearchLabelNamespaces], namespaces...)
+		opts.labels[constants.SearchLabelNamespaces] =
+			append(opts.labels[constants.SearchLabelNamespaces], namespaces...)
 	}
 	return opts
 }
@@ -141,8 +143,8 @@ func (opts *listOptions) OrderBy(field string, desc ...bool) ListOptionsInterfac
 			orderby += constants.OrderByDesc
 		}
 
-		opts.labelSeletor[constants.SearchLabelOrderBy] =
-			append(opts.labelSeletor[constants.SearchLabelOrderBy], orderby)
+		opts.labels[constants.SearchLabelOrderBy] =
+			append(opts.labels[constants.SearchLabelOrderBy], orderby)
 	}
 	return opts
 }
@@ -156,15 +158,20 @@ func (opts *listOptions) Timeout(timeout time.Duration) ListOptionsInterface {
 }
 
 func (opts *listOptions) RemainingCount() ListOptionsInterface {
-	opts.labelSeletor[constants.SearchLabelWithRemainingCount] =
-		append(opts.labelSeletor[constants.SearchLabelWithRemainingCount], strconv.FormatBool(true))
+	opts.labels[constants.SearchLabelWithRemainingCount] =
+		append(opts.labels[constants.SearchLabelWithRemainingCount], strconv.FormatBool(true))
 
 	return opts
 }
 
 func (opts *listOptions) LabelSelector(field string, values []string) ListOptionsInterface {
-	opts.labelSeletor[field] =
-		append(opts.labelSeletor[field], values...)
+	opts.labels[field] =
+		append(opts.labels[field], values...)
+	return opts
+}
+
+func (opts *listOptions) Selector(ls labels.Selector) ListOptionsInterface {
+	opts.labelSelector = ls
 	return opts
 }
 
@@ -175,25 +182,21 @@ func (opts *listOptions) FieldSelector(field string, values []string) ListOption
 }
 
 func (opts *listOptions) Options() metav1.ListOptions {
-	if len(opts.labelSeletor) == 0 {
-		opts.options.LabelSelector = labels.Nothing().String()
-	} else {
-		requirements := make([]labels.Requirement, 0, len(opts.labelSeletor))
-		for label, values := range opts.labelSeletor {
-			var op selection.Operator
-			if len(values) > 1 {
-				op = selection.In
-			} else {
-				op = selection.Equals
-			}
-
-			r, _ := labels.NewRequirement(label, op, append([]string(nil), values...))
-			requirements = append(requirements, *r)
-		}
-		selector := labels.NewSelector()
-		selector = selector.Add(requirements...)
-		opts.options.LabelSelector = selector.String()
+	ls := labels.Everything()
+	if opts.labelSelector != nil {
+		ls = opts.labelSelector
 	}
+	for label, values := range opts.labels {
+		var op selection.Operator
+		if len(values) > 1 {
+			op = selection.In
+		} else {
+			op = selection.Equals
+		}
+		r, _ := labels.NewRequirement(label, op, append([]string(nil), values...))
+		ls = ls.Add(*r)
+	}
+	opts.options.LabelSelector = ls.String()
 
 	if len(opts.fieldSelector) == 0 {
 		opts.options.FieldSelector = fields.Everything().String()

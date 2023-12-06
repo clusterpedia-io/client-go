@@ -22,7 +22,7 @@ import (
 	"time"
 
 	clusterpediav1beta1 "github.com/clusterpedia-io/api/clusterpedia/v1beta1"
-	scheme "github.com/clusterpedia-io/client-go/clusterpediaclient/scheme"
+	"github.com/clusterpedia-io/client-go/clusterpediaclient/scheme"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -125,6 +125,6 @@ func (c *CollectionResource) Fetch(ctx context.Context, name string, opts metav1
 	}
 
 	result = &clusterpediav1beta1.CollectionResource{}
-	request.Do(ctx).Into(result)
+	err = request.Do(ctx).Into(result)
 	return
 }

@@ -1,62 +1,28 @@
-/*
-Copyright 2021 clusterpedia Authors
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
 	"context"
 	"fmt"
 
-	clusterpediaclient "github.com/clusterpedia-io/client-go/clusterpediaclient"
-	"github.com/clusterpedia-io/client-go/tools/builder"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	"github.com/clusterpedia-io/client-go/client"
 )
 
 func main() {
-	restConfig, err := ctrl.GetConfig()
+	config, err := ctrl.GetConfig()
 	if err != nil {
 		panic(err)
 	}
-	cc, err := clusterpediaclient.NewForConfig(restConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	collectionResource, err := cc.PediaClusterV1beta1().CollectionResource().List(context.TODO(), metav1.ListOptions{})
+	client, err := client.NewClusterForConfig(config, "cluster1")
 	if err != nil {
 		panic(err)
 	}
 
-	for _, item := range collectionResource.Items {
-		fmt.Printf("resource info: %v\n", item)
-	}
-
-	// build listOptions
-	options := builder.ListOptionsBuilder().
-		Namespaces("kube-system").
-		Options()
-
-	resources, err := cc.PediaClusterV1beta1().CollectionResource().Fetch(context.TODO(), "workflows", options, nil)
+	pod, err := client.CoreV1().Pods("default").Get(context.TODO(), "pod1", metav1.GetOptions{})
 	if err != nil {
 		panic(err)
 	}
-
-	for _, item := range resources.Items {
-		fmt.Printf("resource info: %v\n", item)
-	}
+	fmt.Println(pod)
 }

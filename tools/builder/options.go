@@ -27,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/selection"
 )
 
@@ -43,6 +44,7 @@ type ListOptionsInterface interface {
 	OwnerUID(uid string) ListOptionsInterface
 	OwnerName(name string) ListOptionsInterface
 	OwnerSeniority(ownerSeniority int) ListOptionsInterface
+	OwnerGroupResource(groupResource schema.GroupResource) ListOptionsInterface
 	LabelSelector(field string, values []string) ListOptionsInterface
 	Selector(ls labels.Selector) ListOptionsInterface
 	FieldSelector(field string, values []string) ListOptionsInterface
@@ -108,6 +110,14 @@ func (opts *listOptions) OwnerName(name string) ListOptionsInterface {
 func (opts *listOptions) OwnerSeniority(ownerSeniority int) ListOptionsInterface {
 	if ownerSeniority > 0 {
 		opts.labels[constants.SearchLabelOwnerSeniority] = []string{strconv.Itoa(ownerSeniority)}
+	}
+	return opts
+}
+
+func (opts *listOptions) OwnerGroupResource(groupResource schema.GroupResource) ListOptionsInterface {
+	gr := strings.TrimSpace(groupResource.String())
+	if len(gr) > 0 {
+		opts.labels[constants.SearchLabelOwnerGroupResource] = []string{gr}
 	}
 	return opts
 }

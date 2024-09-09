@@ -100,17 +100,15 @@ func (c *CollectionResource) Get(ctx context.Context, name string, opts metav1.G
 }
 
 func (c *CollectionResource) List(ctx context.Context, opts metav1.ListOptions) (result *clusterpediav1beta1.CollectionResourceList, err error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	result = &clusterpediav1beta1.CollectionResourceList{}
-	err = c.client.Get().
+	request := c.client.Get().
 		Resource("collectionresources").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Do(ctx).
-		Into(result)
+		VersionedParams(&opts, scheme.ParameterCodec)
+	if opts.TimeoutSeconds != nil {
+		request.Timeout(time.Duration(*opts.TimeoutSeconds) * time.Second)
+	}
+
+	result = &clusterpediav1beta1.CollectionResourceList{}
+	err = request.Do(ctx).Into(result)
 	return
 }
 
@@ -119,6 +117,10 @@ func (c *CollectionResource) Fetch(ctx context.Context, name string, opts metav1
 		Resource("collectionresources").
 		Name(name).
 		VersionedParams(&opts, scheme.ParameterCodec)
+
+	if opts.TimeoutSeconds != nil {
+		request.Timeout(time.Duration(*opts.TimeoutSeconds) * time.Second)
+	}
 
 	for p, v := range params {
 		request.Param(p, v)

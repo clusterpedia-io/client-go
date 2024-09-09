@@ -161,7 +161,7 @@ func (opts *listOptions) OrderBy(field string, desc ...bool) ListOptionsInterfac
 
 func (opts *listOptions) Timeout(timeout time.Duration) ListOptionsInterface {
 	if timeout > 0 {
-		timeoutSeconds := int64(timeout * time.Second)
+		timeoutSeconds := int64(timeout / time.Second)
 		opts.options.TimeoutSeconds = &timeoutSeconds
 	}
 	return opts

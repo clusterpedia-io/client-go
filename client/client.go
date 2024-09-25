@@ -17,6 +17,7 @@ limitations under the License.
 package client
 
 import (
+	"net/http"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	clusterv1alpha2 "github.com/clusterpedia-io/api/cluster/v1alpha2"
-	"github.com/clusterpedia-io/client-go/constants"
+	"github.com/clusterpedia-io/client-go/tools/transport"
 )
 
 const (
@@ -37,46 +38,48 @@ const (
 	DefaultTimeoutSeconds         = 10
 )
 
+var Scheme = runtime.NewScheme()
+
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(Scheme))
+	utilruntime.Must(clusterv1alpha2.AddToScheme(Scheme))
+}
+
 func Client() (client.Client, error) {
-	restConfig, err := ctrl.GetConfig()
+	config, err := ctrl.GetConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	return newClient(restConfig)
+	return newClient(config)
 }
 
 func ClusterClient(cluster string) (client.Client, error) {
-	restConfig, err := ctrl.GetConfig()
+	config, err := ctrl.GetConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	return newClient(restConfig, cluster)
+	return newClient(config, cluster)
 }
 
-func GetClient(restConfig *rest.Config, cluster ...string) (client.Client, error) {
-	return newClient(restConfig, cluster...)
+func GetClient(config *rest.Config, cluster ...string) (client.Client, error) {
+	return newClient(config, cluster...)
 }
 
-func newClient(restConfig *rest.Config, cluster ...string) (client.Client, error) {
+func newClient(config *rest.Config, cluster ...string) (client.Client, error) {
 	var err error
-
 	if len(cluster) == 1 {
-		restConfig, err = ClusterConfigFor(restConfig, cluster[0])
+		config, err = ClusterConfigFor(config, cluster[0])
 	} else {
-		restConfig, err = ConfigFor(restConfig)
+		config, err = ConfigFor(config)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	scheme := runtime.NewScheme()
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(clusterv1alpha2.AddToScheme(scheme))
-
-	c, err := client.New(restConfig, client.Options{
-		Scheme: scheme,
+	c, err := client.New(config, client.Options{
+		Scheme: Scheme,
 	})
 	if err != nil {
 		return nil, err
@@ -85,33 +88,13 @@ func newClient(restConfig *rest.Config, cluster ...string) (client.Client, error
 	return c, nil
 }
 
-func ConfigFor(cfg *rest.Config) (*rest.Config, error) {
-	configShallowCopy := *cfg
-
-	// reset clusterpedia api path
-	if err := SetConfigDefaults(&configShallowCopy); err != nil {
-		return nil, err
-	}
-
-	return &configShallowCopy, nil
-}
-
-func ClusterConfigFor(cfg *rest.Config, cluster string) (*rest.Config, error) {
-	configShallowCopy, err := ConfigFor(cfg)
-	if err != nil {
-		return nil, err
-	}
-	configShallowCopy.Host += constants.ClusterAPIPath + cluster
-	return configShallowCopy, nil
-}
-
 func NewForConfig(cfg *rest.Config) (kubernetes.Interface, error) {
-	clientConfig, err := ConfigFor(cfg)
+	config, err := ConfigFor(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	kubeClient, err := kubernetes.NewForConfig(clientConfig)
+	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +103,12 @@ func NewForConfig(cfg *rest.Config) (kubernetes.Interface, error) {
 }
 
 func NewClusterForConfig(cfg *rest.Config, cluster string) (kubernetes.Interface, error) {
-	clientConfig, err := ClusterConfigFor(cfg, cluster)
+	config, err := ClusterConfigFor(cfg, cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	kubeClient, err := kubernetes.NewForConfig(clientConfig)
+	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +116,35 @@ func NewClusterForConfig(cfg *rest.Config, cluster string) (kubernetes.Interface
 	return kubeClient, nil
 }
 
+func ConfigFor(cfg *rest.Config) (*rest.Config, error) {
+	configShallowCopy := *cfg
+	if err := SetConfigDefaults(&configShallowCopy); err != nil {
+		return nil, err
+	}
+
+	// wrap a transport to rest client config
+	configShallowCopy.Wrap(func(rt http.RoundTripper) http.RoundTripper {
+		return transport.NewTransport(configShallowCopy.Host, rt)
+	})
+
+	return &configShallowCopy, nil
+}
+
+func ClusterConfigFor(cfg *rest.Config, cluster string) (*rest.Config, error) {
+	configShallowCopy := *cfg
+	if err := SetConfigDefaults(&configShallowCopy); err != nil {
+		return nil, err
+	}
+
+	// wrap a cluster transport to rest client config
+	configShallowCopy.Wrap(func(rt http.RoundTripper) http.RoundTripper {
+		return transport.NewTransportForCluster(configShallowCopy.Host, cluster, rt)
+	})
+
+	return &configShallowCopy, nil
+}
+
 func SetConfigDefaults(config *rest.Config) error {
-	config.Host += constants.ClusterPediaAPIPath
 	if config.Timeout == 0 {
 		config.Timeout = DefaultTimeoutSeconds * time.Second
 	}

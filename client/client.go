@@ -43,7 +43,7 @@ func Client() (client.Client, error) {
 		return nil, err
 	}
 
-	return newClient(restConfig)
+	return newClient(restConfig, "", false)
 }
 
 func ClusterClient(cluster string) (client.Client, error) {
@@ -52,21 +52,28 @@ func ClusterClient(cluster string) (client.Client, error) {
 		return nil, err
 	}
 
-	return newClient(restConfig, cluster)
+	return newClient(restConfig, cluster, false)
 }
 
-func GetClient(restConfig *rest.Config, cluster ...string) (client.Client, error) {
-	return newClient(restConfig, cluster...)
-}
-
-func newClient(restConfig *rest.Config, cluster ...string) (client.Client, error) {
-	var err error
-
-	if len(cluster) == 1 {
-		restConfig, err = ClusterConfigFor(restConfig, cluster[0])
-	} else {
-		restConfig, err = ConfigFor(restConfig)
+func ProxyClusterClient(cluster string) (client.Client, error) {
+	restConfig, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, err
 	}
+	return newClient(restConfig, cluster, true)
+}
+
+func GetClient(restConfig *rest.Config, clusters ...string) (client.Client, error) {
+	var cluster string
+	if len(clusters) != 0 {
+		cluster = clusters[0]
+	}
+	return newClient(restConfig, cluster, false)
+}
+
+func newClient(restConfig *rest.Config, cluster string, proxyWithPath bool) (client.Client, error) {
+	var err error
+	restConfig, err = configFor(restConfig, cluster, proxyWithPath)
 	if err != nil {
 		return nil, err
 	}
@@ -86,23 +93,31 @@ func newClient(restConfig *rest.Config, cluster ...string) (client.Client, error
 }
 
 func ConfigFor(cfg *rest.Config) (*rest.Config, error) {
+	return configFor(cfg, "", false)
+}
+
+func ClusterConfigFor(cfg *rest.Config, cluster string) (*rest.Config, error) {
+	return configFor(cfg, cluster, false)
+}
+
+func ProxyClusterConfigFor(cfg *rest.Config, cluster string) (*rest.Config, error) {
+	return configFor(cfg, cluster, true)
+}
+
+func configFor(cfg *rest.Config, cluster string, withPath bool) (*rest.Config, error) {
 	configShallowCopy := *cfg
 
 	// reset clusterpedia api path
 	if err := SetConfigDefaults(&configShallowCopy); err != nil {
 		return nil, err
 	}
-
-	return &configShallowCopy, nil
-}
-
-func ClusterConfigFor(cfg *rest.Config, cluster string) (*rest.Config, error) {
-	configShallowCopy, err := ConfigFor(cfg)
-	if err != nil {
-		return nil, err
+	if cluster != "" {
+		configShallowCopy.Host += constants.ClusterAPIPath + cluster
+		if withPath {
+			configShallowCopy.Host += "/proxy"
+		}
 	}
-	configShallowCopy.Host += constants.ClusterAPIPath + cluster
-	return configShallowCopy, nil
+	return &configShallowCopy, nil
 }
 
 func NewForConfig(cfg *rest.Config) (kubernetes.Interface, error) {
